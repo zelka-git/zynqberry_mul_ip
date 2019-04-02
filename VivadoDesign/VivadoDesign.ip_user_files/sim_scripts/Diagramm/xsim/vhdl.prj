@@ -1,0 +1,8 @@
+vhdl xil_defaultlib  \
+"../../../bd/Diagramm/ipshared/3dcc/hdl/my_ip_v3_v1_0_S00_AXI.vhd" \
+"../../../bd/Diagramm/ipshared/3dcc/hdl/my_ip_v3_v1_0.vhd" \
+"../../../bd/Diagramm/ip/Diagramm_my_ip_v3_0_0/sim/Diagramm_my_ip_v3_0_0.vhd" \
+"../../../bd/Diagramm/ip/Diagramm_rst_ps7_0_50M_0/sim/Diagramm_rst_ps7_0_50M_0.vhd" \
+"../../../bd/Diagramm/sim/Diagramm.vhd" \
+
+nosort

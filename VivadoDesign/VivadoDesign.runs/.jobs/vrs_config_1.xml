@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<Runs Version="1" Minor="0">
+	<Run Id="Diagramm_processing_system7_0_0_synth_1" LaunchDir="/home/anzhelika/projekt/myIpv3/VivadoDesign/VivadoDesign.runs/Diagramm_processing_system7_0_0_synth_1" FlowId="Vivado_Synthesis" FromStepId="vivado" ToStepId="vivado"/>
+	<Run Id="Diagramm_my_ip_v3_0_0_synth_1" LaunchDir="/home/anzhelika/projekt/myIpv3/VivadoDesign/VivadoDesign.runs/Diagramm_my_ip_v3_0_0_synth_1" FlowId="Vivado_Synthesis" FromStepId="vivado" ToStepId="vivado"/>
+	<Run Id="Diagramm_rst_ps7_0_50M_0_synth_1" LaunchDir="/home/anzhelika/projekt/myIpv3/VivadoDesign/VivadoDesign.runs/Diagramm_rst_ps7_0_50M_0_synth_1" FlowId="Vivado_Synthesis" FromStepId="vivado" ToStepId="vivado"/>
+	<Run Id="Diagramm_auto_pc_0_synth_1" LaunchDir="/home/anzhelika/projekt/myIpv3/VivadoDesign/VivadoDesign.runs/Diagramm_auto_pc_0_synth_1" FlowId="Vivado_Synthesis" FromStepId="vivado" ToStepId="vivado"/>
+</Runs>
+

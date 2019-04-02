@@ -1,0 +1,13 @@
+#include "my_ip_v3.h"
+#include "xparameters.h"
+#include "xil_types.h"
+#include "xstatus.h"
+
+#define Addr XPAR_MY_IP_V3_0_S00_AXI_BASEADDR
+
+int main(void){
+	xil_printf("my_ip_v3 IP test begin.\r\n");
+	xil_printf("---------------------------------\r\n\n");
+//	MY_IP_V3_mWriteReg(Addr, 0, 255);
+	MY_IP_V3_mWriteReg(Addr, 0, 255);
+}
