@@ -1,0 +1,114 @@
+1. Версию ubuntu 16.04 развернуть на виртуальной машине.
+2. При установке выбрать да при вопросе об обновлениях.
+3. Выделить 200ГБ дискового пространства, 8000Гб оперативной памяти
+4. в меню файл Устройства -> подключить образ диска дополнительной гостевой ОС (запустить)
+5. в консоли sudo apt-get update
+6. в консоли sudo apt-get upgrade
+7. выключить машину. указать в качестве общей папки выбранную директорию. Скопировать все необходимые файлы в общую директорию: Crack, te0715, petalinux-v2017.4-final-installer.run, Xilinx_Vivado_SDK_2017_4.iso.
+8. В домашней папке создать директории:
+- petalinux
+- softtoinstal (сюда скопируются файлы из п.7)
+- work
+	-- petaproj
+	-- projVivado
+9. И затем средствами линукса через sudo su скопировать в sofftoinstall все файлы из общей c Win папки.
+10. Если папка залочена, снять при помощи sudo chmod -R 777 folderName
+11. Перейти в папку с установочниками. Запустить команду ./petalinuxYYYXXX.runp (предварительно разблокировав *.log как в п.10)
+(установка PetaLinux https://www.instructables.com/id/Getting-Started-With-PetaLinux/,  https://www.xilinx.com/support/documentation/sw_manuals/xilinx2017_1/ug1144-petalinux-tools-reference-guide.pdf)
+12. на лицензионных соглашениях q -> y
+13. ко всему перечисленному на стр.9 Reference Guide установить (sudo apt-get install) zlib1g:i386
+15. извлечь ISO средствами linux. И запустить xsetup через консоль.
+14. В рабочую папку work, в ней projVivaldo и petaproj, закинуть в projVivado проект с .sdk файлом
+15. sudo dpkg-reconfigure dash. выбрать пункт нет (или да, или похуй, нет не похуй. Смысл что нужно в bash перейти)
+16. sudo gedit /etc/bash.bashrc
+17. source /home/nate/Documents/plnx/2015_4/petalinux-v2015.4-final/settings.sh (ты пету в документы установил? хардкор)
+	source /opt/Xilinx/Vivado/2015.4/settings64.sh
+18. открыть терминал в /work/petaproj/ (убедиться что нет файлов которые он не видит)
+19. $ petalinux-create --type project --template zynq --name te0715    вот этим ты и создаёшь папку с проектом 
+20. $ cd te0715/
+21. Скинуть проект из п. 7 в папку projVivado
+21. $ petalinux-config --get-hw-description=/home/gil/work/projVivado/te0715/te0715.sdk/ (актуальный путь к файлу *.hdf)
+22. change from INITFRAMS to SD-CARD (Image packaging conf) save -> exit
+23. $ petalinux-config -c kernel
+24. activate SPI in device drivers and User mode SPI device driver support (в меню kernel config)
+25. ------ add in file: system-user.dtsi--------
+&spi0 {
+	is-decode-cs = <0>;
+	num-cs = <1>;
+	status = "okay";
+	spidev@0x00 {
+		compatible ="spidev";
+		spi-max-frequency = <1000000>;
+		reg = <0>;
+	};
+};
+26. $ petalinux-build
+27. $ petalinux-package --boot --format BIN --fsbl ./images/linux/zynq_fsbl.elf --fpga ./images/linux/zsys_wrapper.bit --u-boot
+---------
+Создание загрузочной картыты 
+1. установить minitool partition wizard (или другое ПО)
+2. создать две области BOOT (FAT32) 400 Мб и rootfs (Ext4) всё остальное
+---------
+Заливка ОС на область rootfs на карте
+1. сбросить в общую папку ubuntu-16.04.3-minimal-armhf-2017-10-07.tar.xz
+2. выполнить команду $ sudo tar xfvp ./*-*-*armhf-*/armhf-rootfs-*.tar -C /media/(имя юзера)/rootfs
+где * название файла из пункта 1.
+---------
+Заливка файлов на область BOOT на картен
+Нужно скопировать 2 файла image.ub и BOOT.bin
+I) Создание файла image.ub 
+Берём из Petalinux(папка images) и копируем на BOOT
+II) Создание файла BOOT.bin
+1) делаем проект и генерим bitstream в vivado 
+2) В Xilinx Vivado File->Export->Export Hardware  поставить галочку include bitstream 
+3) В Xilinx Vivado File->LaunchSDK
+4) В SDK File->New->Application Project
+ 4.1 дать название и нажать Next
+ 4.2 выбрать Zynq FSBL и нажать Finish
+5) правой кнопкой по созданному проекту ->Create Boot Image
+	5.1 Добавляем uboot.elf через Add. Он добавляется только один раз присоздании образа в самый первый раз. SDK умный =) Данный файл берёться из созданного в Petalinux проекте
+	5.2 Нажать Create Image 
+6) скопировать BOOT.bin на BOOT
+
+28. Безопасное извлечение карты
+	в консоли написать sync
+	нажать треугольник напротив флешек
+	устройства->USB->снять флажок с устройства
+	безопасно извлечь из винды
+
+---
+обновление программного репозитория
+1. sudo apt-get update
+2. sudo apt-get upgrade
+установка компилятора и QT
+3. sudo apt-get install qt5-default
+4. sudo apt-get install build-essential
+5. скинуть рабочую версию в /home/ubuntu/work/FpgaServer
+6. cd /home/ubuntu/work/FpgaServer/scpi-parser
+7. make
+8. cd ..
+9. qmake
+10. make clean
+11. make
+12. sudo chmod 777 timecorr.sh
+---
+создание автозагрузки
+1. sudo nano /etc/rc.local
+2. добавить две строки:
+	cd /home/ubuntu/work/FpgaServer
+	sudo ./FpgaServer &
+	(ctrl+x) y
+---
+изменение MAC-адреса платы
+1. sudo nano /etc/rc.local
+2. добавить строчки
+
+	ifconfig eth0 down
+	ifconfig eth0 hw ether 00:0a:35:00:1e:54 (вписать свой MAC)
+	ifconfig eth0 up
+
+по состоянию на 07.03.2019 следующие привязки:
+00:0a:35:00:1e:53 -- 10.0.1.25
+00:0a:35:00:1e:54 -- 10.0.1.34
+
+

@@ -1,0 +1,6 @@
+22:35:16 **** Incremental Build of configuration Debug for project linux_mul ****
+make all 
+make: Цель «all» не требует выполнения команд.
+
+22:35:16 Build Finished (took 367ms)
+

@@ -1,0 +1,116 @@
+petalinux-create --type project --template zynq --name OS_myIpv3
+
+cd OS_myIpv3/
+
+petalinux-config --get-hw-description=/home/anzhelika/projekt/myIpv3/VivadoDesign/VivadoDesign.sdk/Diagramm_wrapper_hw_platform_0/
+
+
+#psPlusMulPl_wrapper_hw_platform_0
+
+--------------------------------------------------------------
+конфигурация системы
+
+Subsystem AUTO Hardware Settings
+    SD/SDIO Settings
+        Change Primary SD/SDIO to ps7_sd_1. 
+    Advanced bootable images storage Settings
+        dtb image settings
+            Set Image Storage Media to primary sd.  
+Image Packaging Configuration
+    Change Root filesystem type to SD card
+    Verify Device node of SD device is set to /dev/mmcblk0p2
+    Uncheck Copy final images to tftpboot
+    
+---------------------------------------------------------------
+
+petalinux-config -c kernel
+
+In the kernel config menus
+    Device drivers
+        Network device support
+            USB Network adapters
+                Include Multi-purpose USB Networking Framework
+                    Include SMSC LAN95XX based USB2.0 10/100 ethernet devices
+    Enable or modularize any additional modules required.  
+
+nano ./project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi
+добавить следующие строки в файл:
+/{
+    usb_phy0: usb_phy@0 {
+        compatible = "ulpi-phy";
+        #phy-cells = <0>;
+        reg = <0xe0002000 0x1000>;
+        view-port = <0x0170>;
+        drv-vbus;
+    };
+};
+ 
+&usb0 {
+    usb-phy = <&usb_phy0>;
+} ;
+
+#собрать образ
+petalinux-build
+
+#загрузочный образ пакета собержащий загрузчик первого уровня fsbl, fpga битовый поток и U-BOOT
+
+# генерация BOOT.bin файла
+
+petalinux-package --boot --fsbl ./images/linux/zynq_fsbl.elf --fpga /home/anzhelika/projekt/myIpv3/VivadoDesign/VivadoDesign.sdk/Diagramm_wrapper_hw_platform_0/Diagramm_wrapper.bit  --u-boot
+
+#упаковать все в prebuild директорию для удобства
+petalinux-package --prebuilt --fpga /home/anzhelika/projekt/myIpv3/VivadoDesign/VivadoDesign.sdk/Diagramm_wrapper_hw_platform_0/Diagramm_wrapper.bit 
+
+#Подготавливаем флешку
+#запускаем программу
+sudo gparted
+#разбиваем флешку на 2 раздела 1- fat32 min 48MB (сделала 512) поставить метку lba
+#2 - оставшееся место ex4
+
+#создать директории
+sudo mkdir /media/boot
+sudo mkdir /media/rootfs
+ 
+#Примонтировать разделы флешки
+sudo mount /dev/mmcblk0p1 /media/boot
+sudo mount /dev/mmcblk0p2 /media/rootfs
+
+#копируем файлы на флешку в fat раздел
+sudo cp pre-built/linux/images/BOOT.BIN  /media/boot
+sudo cp pre-built/linux/images/system.dtb  /media/boot
+sudo cp images/linux/image.ub  /media/boot
+
+#копирование файловой системы ubuntu на карту
+sudo tar xfvp ~/Загрузки/ubuntu-16.04.2-minimal-armhf-2017-06-18/armhf-rootfs-ubuntu-xenial.tar -C /media/rootfs/
+
+sync
+sudo chown root:root /media/rootfs/
+sudo chmod 755 /media/rootfs/ 
+
+#Add file systems table
+sudo sh -c "echo '/dev/mmcblk0p2  /  auto  errors=remount-ro  0  1' >> /media/rootfs/etc/fstab"
+sudo sh -c "echo '/dev/mmcblk0p1  /boot/uboot  auto  defaults  0  2' >> /media/rootfs/etc/fstab"
+
+#Unmount SD card
+sudo umount /media/boot
+sudo umount /media/rootfs
+
+#Прошила fpga
+#при запуске системы называем ентер 
+setenv cp_dtb2ram 'fatload mmc 1 ${dtbnetstart} ${dtb_img}'                                                            
+setenv cp_kernel2ram 'fatload mmc 1 ${netstart} ${kernel_img}'                                                          
+setenv default_bootcmd 'run cp_kernel2ram && run cp_dtb2ram && bootm ${netstart} - ${dtbnetstart}'
+setenv bootargs 'console=ttyPS0,115200 earlyprintk root=/dev/mmcblk0p2 rw rootwait'
+saveenv
+boot
+
+
+
+petalinux-create -t modules --name  fpgaMul --enable
+
+--INFO: New modules successfully created in /home/anzhelika/projekt/zynq_ip_mul/--OS_zynq_ip_mul/project-spec/meta-user/recipes-modules/fpgaMul
+
+
+
+очередная сборка
+petalinux-package --boot --format BIN --fsbl ./images/linux/zynq_fsbl.elf --fpga ./images/linux/system.bit --u-boot

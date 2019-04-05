@@ -1,0 +1,33 @@
+#include <stdio.h>
+#include "xil_printf.h"
+
+#include "xil_io.h"
+
+#include "my_ip_v3.h"
+#include "xparameters.h"
+#include "xil_types.h"
+//#include "xstatus.h"
+
+//#define Addr XPAR_MY_IP_V3_0_S00_AXI_BASEADDR
+#define Addr 0x43c00000
+
+int main(void){
+	u32 BaseAddress = 0x43C00000;
+	u32 a[5];
+	uint64_t out;
+	print("Hello World\n\r");
+	print("Start programm\n\r");
+
+	MY_IP_V3_mWriteReg(BaseAddress, 0, 4294967295);
+	MY_IP_V3_mWriteReg(BaseAddress, 4, 5);
+	for (int i=0; i<5; i++)
+	{
+		a[i]=MY_IP_V3_mReadReg(BaseAddress, i*4);
+		printf("\nreg%d=%lu\n",i, a[i]);
+//		printf("\nreg0=%d\n",reg0);
+	}
+	out=((uint64_t)a[3] << 32) | (uint64_t)a[2];
+	printf("\n%lu * %lu = %llu\n",a[0], a[1], out);
+	print("End programm\n\r");
+
+}

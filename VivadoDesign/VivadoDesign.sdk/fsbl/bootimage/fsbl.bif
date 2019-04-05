@@ -1,0 +1,8 @@
+//arch = zynq; split = false; format = BIN
+the_ROM_image:
+{
+	[bootloader]/home/anzhelika/projekt/myIpv3/VivadoDesign/VivadoDesign.sdk/fsbl/Debug/fsbl.elf
+	/home/anzhelika/projekt/myIpv3/VivadoDesign/VivadoDesign.sdk/Diagramm_wrapper_hw_platform_0/Diagramm_wrapper.bit
+	/home/anzhelika/projekt/myIpv3/Os_petr/images/linux/u-boot.elf
+	/home/anzhelika/projekt/myIpv3/VivadoDesign/VivadoDesign.sdk/test_ip/Debug/test_ip.elf
+}
